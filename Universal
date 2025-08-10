@@ -6177,7 +6177,7 @@ local function ScriptInGeneral()
 
 		-- Animation setup
 		local Anim = Instance.new("Animation")
-		Anim.AnimationId = "rbxassetid://93326430026112" -- Replace with your idle animation ID
+		Anim.AnimationId = "rbxassetid://73980801925168" -- Replace with your idle animation ID
 		local freezeAtTime = 2  -- Time (in seconds) to freeze the animation after starting
 
 		local function setFlying(flying)
