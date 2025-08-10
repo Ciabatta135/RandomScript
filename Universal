@@ -6177,37 +6177,36 @@ local function ScriptInGeneral()
 
 		-- Animation setup
 		local Anim = Instance.new("Animation")
-		Anim.AnimationId = "rbxassetid://10714347256" -- Replace with your idle animation ID
+		Anim.AnimationId = "rbxassetid://93326430026112" -- Replace with your idle animation ID
 		local freezeAtTime = 2  -- Time (in seconds) to freeze the animation after starting
 
 		local function setFlying(flying)
-			isFlying = flying
-			local character = player.Character
-			if character then
-				local hrp = character:FindFirstChild("HumanoidRootPart")
-				humanoid = character:FindFirstChild("Humanoid")
-				if hrp and humanoid then
-					bodyGyro.Parent = isFlying and hrp or nil
-					bodyVel.Parent = isFlying and hrp or nil
-					bodyGyro.CFrame = hrp.CFrame
-					bodyVel.Velocity = Vector3.new()
-					if isFlying then
-						humanoid.PlatformStand = true
-						if track then
-							track:Play()
-							-- Freeze the animation after a delay
-							task.wait(freezeAtTime)
-							track:AdjustSpeed(0)  -- Freeze the animation by setting speed to 0
-						end
-					else
-						humanoid.PlatformStand = false
-						if track then
-							track:Stop()
-						end
-					end
-				end
-			end
-		end
+            isFlying = flying
+            local character = player.Character
+            if character then
+                local hrp = character:FindFirstChild("HumanoidRootPart")
+                humanoid = character:FindFirstChild("Humanoid")
+                if hrp and humanoid then
+                    bodyGyro.Parent = isFlying and hrp or nil
+                    bodyVel.Parent = isFlying and hrp or nil
+                    bodyGyro.CFrame = hrp.CFrame
+                    bodyVel.Velocity = Vector3.new()
+                    if isFlying then
+                        humanoid.PlatformStand = true
+                        if track then
+                            track:Play()
+                            track.Looped = true -- ensure it loops
+                        end
+                    else
+                        humanoid.PlatformStand = false
+                        if track then
+                            track:Stop()
+                        end
+                    end
+                end
+            end
+        end
+
 
 		local function onUpdate(dt)
 			if isFlying then
