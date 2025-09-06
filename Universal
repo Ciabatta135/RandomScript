@@ -6671,7 +6671,7 @@ end
 
 local Plr = game.Players.LocalPlayer
 
-local WhiteListedPersons = {2817513261, 2015322056, 2819479166, 2817515788, 8471315531}
+local WhiteListedPersons = {2817513261, 2015322056, 2819479166, 2817515788, 8471315531, 2819427932}
 
 local function ActiveWhiteList()
 	if table.find(WhiteListedPersons, Plr.UserId) then
