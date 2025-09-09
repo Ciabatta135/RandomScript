@@ -37,6 +37,15 @@ local function MoreCredits()
 
 end
 
+task.spawn(function()
+	local args = {
+		[1] = "PickingTools",
+		[2] = "Couch"
+	}
+
+	game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+end)
+
 
 
 
@@ -3984,6 +3993,16 @@ local function ScriptInGeneral()
 				-- Move behind the target by offsetDistance studs along the negative look vector (backwards)
 				local behindCFrame = targetCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, offsetDistance)
 				player.Character.HumanoidRootPart.CFrame = behindCFrame
+				local player = game.Players.LocalPlayer
+				local backpack = player:WaitForChild("Backpack")
+
+				local couchTool = backpack:FindFirstChild("Couch")
+				if couchTool then
+					couchTool.Parent = player.Character -- Grabs (equips) the tool
+				else
+					warn("Couch tool not found in Backpack.")
+				end
+
 				task.wait(0.1)
 			end
 
@@ -3992,6 +4011,16 @@ local function ScriptInGeneral()
 			if isTeleporting then
 				player.Character.HumanoidRootPart.CFrame = CFrame.new(2347823, 2374098, 239874)
 				isTeleporting = false
+				local player = game.Players.LocalPlayer
+				local backpack = player:WaitForChild("Backpack")
+
+				local couchTool = backpack:FindFirstChild("Couch")
+				if couchTool then
+					couchTool.Parent = nil
+				else
+					warn("Couch tool not found in Backpack.")
+				end
+
 			end
 
 		end
