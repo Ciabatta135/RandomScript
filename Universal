@@ -4011,12 +4011,13 @@ local function ScriptInGeneral()
 			if isTeleporting then
 				player.Character.HumanoidRootPart.CFrame = CFrame.new(2347823, 2374098, 239874)
 				isTeleporting = false
+				wait(.5)
 				local player = game.Players.LocalPlayer
 				local backpack = player:WaitForChild("Backpack")
 
 				local couchTool = backpack:FindFirstChild("Couch")
 				if couchTool then
-					couchTool.Parent = nil
+					couchTool.Parent = backpack
 				else
 					warn("Couch tool not found in Backpack.")
 				end
