@@ -1,31 +1,20 @@
--- Cool NameTag System (Readable + Clean)
--- Client-Side, Optimized
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- SETTINGS
-local TEXT_COLOR = Color3.fromRGB(240, 240, 240) -- softer white
+local TEXT_COLOR = Color3.fromRGB(240, 240, 240)
 local STROKE_COLOR = Color3.fromRGB(0, 0, 0)
-local SHADOW_COLOR = Color3.fromRGB(0, 0, 0)
 local FONT = Font.fromEnum(Enum.Font.GothamSemibold)
-
 local NAME_TEXT_SIZE = 18
 local USER_TEXT_SIZE = 13
-local NAME_OFFSET = Vector3.new(0, 3.2, 0) -- higher above head
-
+local NAME_OFFSET = Vector3.new(0, 3.2, 0)
 local MAX_DISTANCE = 170
 
 local NameTags = {}
 
-local function createNameTag(player, character)
+local function createNameTag(player, head)
 	if player == LocalPlayer then return end
-	if not character then return end
-
-	local head = character:FindFirstChild("Head")
 	if not head then return end
 
-	-- Cleanup old
 	if NameTags[player] then
 		NameTags[player]:Destroy()
 	end
@@ -33,13 +22,11 @@ local function createNameTag(player, character)
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "CoolNameTag"
 	billboard.Adornee = head
-	billboard.Size = UDim2.new(0, 180, 0, 70) -- fixed pixel size
+	billboard.Size = UDim2.new(0, 180, 0, 70)
 	billboard.StudsOffset = NAME_OFFSET
 	billboard.AlwaysOnTop = true
 	billboard.MaxDistance = MAX_DISTANCE
 
-
-	-- Main text
 	local textLabel = Instance.new("TextLabel")
 	textLabel.Size = UDim2.fromScale(1, 1)
 	textLabel.BackgroundTransparency = 1
@@ -50,7 +37,6 @@ local function createNameTag(player, character)
 	textLabel.TextColor3 = TEXT_COLOR
 	textLabel.TextXAlignment = Enum.TextXAlignment.Center
 	textLabel.TextYAlignment = Enum.TextYAlignment.Center
-
 	textLabel.Text = string.format(
 		"%s\n<font size='%d'>@%s</font>",
 		player.DisplayName,
@@ -58,41 +44,41 @@ local function createNameTag(player, character)
 		player.Name
 	)
 
-	-- Stroke (stronger)
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = STROKE_COLOR
 	stroke.Thickness = 1.8
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
 	stroke.Parent = textLabel
 
-	-- Shadow (cheap readability boost)
-	local shadow = Instance.new("TextLabel")
-	shadow.Size = UDim2.fromScale(1, 1)
-	shadow.Position = UDim2.fromOffset(1, 1)
-	shadow.BackgroundTransparency = 1
-	shadow.TextWrapped = true
-	shadow.RichText = true
-	shadow.TextSize = NAME_TEXT_SIZE
-	shadow.FontFace = FONT
-	shadow.TextColor3 = SHADOW_COLOR
-	shadow.TextTransparency = 0.65
-	shadow.TextXAlignment = Enum.TextXAlignment.Center
-	shadow.TextYAlignment = Enum.TextYAlignment.Center
-	shadow.ZIndex = 0
-	shadow.Text = textLabel.Text
-
-	textLabel.ZIndex = 1
-
-	shadow.Parent = billboard
 	textLabel.Parent = billboard
-	billboard.Parent = character
+	billboard.Parent = head
 
 	NameTags[player] = billboard
 end
 
+local function removeNameTag(player)
+	if NameTags[player] then
+		NameTags[player]:Destroy()
+		NameTags[player] = nil
+	end
+end
+
 local function onCharacterAdded(player, character)
-	character:WaitForChild("Head", 5)
-	createNameTag(player, character)
+	-- Clear old tag when character resets
+	removeNameTag(player)
+
+	-- Wait for Head to exist
+	local head = character:WaitForChild("Head", 10)
+	if head then
+		createNameTag(player, head)
+
+		-- If head is ever removed (like during respawn), remove nametag
+		head.AncestryChanged:Connect(function(_, parent)
+			if not parent then
+				removeNameTag(player)
+			end
+		end)
+	end
 end
 
 local function onPlayerAdded(player)
@@ -106,10 +92,7 @@ local function onPlayerAdded(player)
 end
 
 local function onPlayerRemoving(player)
-	if NameTags[player] then
-		NameTags[player]:Destroy()
-		NameTags[player] = nil
-	end
+	removeNameTag(player)
 end
 
 -- Init
