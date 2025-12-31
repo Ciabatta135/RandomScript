@@ -33,10 +33,11 @@ local function createNameTag(player, character)
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "CoolNameTag"
 	billboard.Adornee = head
-	billboard.Size = UDim2.fromScale(4.5, 1.8)
+	billboard.Size = UDim2.new(0, 180, 0, 70) -- fixed pixel size
 	billboard.StudsOffset = NAME_OFFSET
 	billboard.AlwaysOnTop = true
 	billboard.MaxDistance = MAX_DISTANCE
+
 
 	-- Main text
 	local textLabel = Instance.new("TextLabel")
