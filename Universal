@@ -412,70 +412,67 @@ local function ScriptInGeneral()
 	SCREENGUI1["_CLOSETAB"].MouseButton1Click:Connect(TweenCreate)
 
 
-	local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local player = game.Players.LocalPlayer
+	local function initializeNoclip(character)
+		local player = game.Players.LocalPlayer
+		local userInputService = game:GetService("UserInputService")
 
-local noclipConnection = nil
-local noclipEnabled = false
+		local noclipButton = SCREENGUI1["_Noclip"]
+		if not noclipButton then
+			warn("Noclip button not found")
+			return
+		end
 
--- This is the core Infinite Yield logic
-local function NoclipLoop()
-    if noclipEnabled and player.Character then
-        for _, child in pairs(player.Character:GetDescendants()) do
-            if child:IsA("BasePart") and child.CanCollide == true then
-                child.CanCollide = false
-            end
-        end
-    end
-end
+		local noclipEnabled = false
 
-local function toggleNoclip()
-    noclipEnabled = not noclipEnabled
-    
-    if noclipEnabled then
-        -- Start the loop using Stepped (just like IY)
-        noclipConnection = RunService.Stepped:Connect(NoclipLoop)
-        print("Noclip Enabled")
-    else
-        -- Clean up the connection
-        if noclipConnection then
-            noclipConnection:Disconnect()
-            noclipConnection = nil
-        end
-        
-        -- Reset collisions so you don't fall through the floor forever
-        if player.Character then
-            for _, child in pairs(player.Character:GetDescendants()) do
-                if child:IsA("BasePart") then
-                    child.CanCollide = true
-                end
-            end
-        end
-        print("Noclip Disabled")
-    end
-end
+		local function updateNoclip()
+			while noclipEnabled do
+				for _, part in pairs(character:GetDescendants()) do
+					if part:IsA("BasePart") then
+						part.CanCollide = false
+					end
+				end
+				wait(0.1)
+			end
 
--- Setup UI Button
-local noclipButton = SCREENGUI1["_Noclip"]
-if noclipButton then
-    noclipButton.MouseButton1Click:Connect(toggleNoclip)
-else
-    warn("Noclip button not found")
-end
+			for _, part in pairs(character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = true
+				end
+			end
+		end
 
--- Setup Keybind (B)
-userInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.B then
-        toggleNoclip()
-    end
-end)
+		local function toggleNoclip()
+			noclipEnabled = not noclipEnabled
+			if noclipEnabled then
+				coroutine.wrap(updateNoclip)()
+			else
+				for _, part in pairs(character:GetDescendants()) do
+					if part:IsA("BasePart") then
+						part.CanCollide = true
+					end
+				end
+			end
+		end
 
--- Character Added handler to ensure it works after death
-player.CharacterAdded:Connect(function(character)
-    -- If they died while noclip was on, we don't need to do anything 
-    -- because the NoclipLoop checks for the current character automatically.
-end)
+		userInputService.InputBegan:Connect(function(input, gameProcessed)
+			if not gameProcessed and input.KeyCode == Enum.KeyCode.B then
+				toggleNoclip()
+			end
+		end)
+
+		noclipButton.MouseButton1Click:Connect(toggleNoclip)
+	end
+
+	local function onCharacterAdded(character)
+		initializeNoclip(character)
+	end
+
+	local player = game.Players.LocalPlayer
+	player.CharacterAdded:Connect(onCharacterAdded)
+
+	if player.Character then
+		initializeNoclip(player.Character)
+	end
 
 
 	local function teleport()
