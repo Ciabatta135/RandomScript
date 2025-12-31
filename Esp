@@ -1,0 +1,114 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+
+local TEXT_COLOR = Color3.fromRGB(240, 240, 240) -- softer white
+local STROKE_COLOR = Color3.fromRGB(0, 0, 0)
+local SHADOW_COLOR = Color3.fromRGB(0, 0, 0)
+local FONT = Font.fromEnum(Enum.Font.GothamSemibold)
+
+local NAME_TEXT_SIZE = 18
+local USER_TEXT_SIZE = 13
+local NAME_OFFSET = Vector3.new(0, 3.2, 0) -- higher above head
+
+local MAX_DISTANCE = 170
+
+local NameTags = {}
+
+local function createNameTag(player, character)
+	if player == LocalPlayer then return end
+	if not character then return end
+
+	local head = character:FindFirstChild("Head")
+	if not head then return end
+
+	if NameTags[player] then
+		NameTags[player]:Destroy()
+	end
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "CoolNameTag"
+	billboard.Adornee = head
+	billboard.Size = UDim2.fromScale(4.5, 1.8)
+	billboard.StudsOffset = NAME_OFFSET
+	billboard.AlwaysOnTop = true
+	billboard.MaxDistance = MAX_DISTANCE
+
+
+	local textLabel = Instance.new("TextLabel")
+	textLabel.Size = UDim2.fromScale(1, 1)
+	textLabel.BackgroundTransparency = 1
+	textLabel.TextWrapped = true
+	textLabel.RichText = true
+	textLabel.TextSize = NAME_TEXT_SIZE
+	textLabel.FontFace = FONT
+	textLabel.TextColor3 = TEXT_COLOR
+	textLabel.TextXAlignment = Enum.TextXAlignment.Center
+	textLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+	textLabel.Text = string.format(
+		"%s\n<font size='%d'>@%s</font>",
+		player.DisplayName,
+		USER_TEXT_SIZE,
+		player.Name
+	)
+
+	-- Stroke (stronger)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = STROKE_COLOR
+	stroke.Thickness = 1.8
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	stroke.Parent = textLabel
+
+	local shadow = Instance.new("TextLabel")
+	shadow.Size = UDim2.fromScale(1, 1)
+	shadow.Position = UDim2.fromOffset(1, 1)
+	shadow.BackgroundTransparency = 1
+	shadow.TextWrapped = true
+	shadow.RichText = true
+	shadow.TextSize = NAME_TEXT_SIZE
+	shadow.FontFace = FONT
+	shadow.TextColor3 = SHADOW_COLOR
+	shadow.TextTransparency = 0.65
+	shadow.TextXAlignment = Enum.TextXAlignment.Center
+	shadow.TextYAlignment = Enum.TextYAlignment.Center
+	shadow.ZIndex = 0
+	shadow.Text = textLabel.Text
+
+	textLabel.ZIndex = 1
+
+	shadow.Parent = billboard
+	textLabel.Parent = billboard
+	billboard.Parent = character
+
+	NameTags[player] = billboard
+end
+
+local function onCharacterAdded(player, character)
+	character:WaitForChild("Head", 5)
+	createNameTag(player, character)
+end
+
+local function onPlayerAdded(player)
+	player.CharacterAdded:Connect(function(character)
+		onCharacterAdded(player, character)
+	end)
+
+	if player.Character then
+		onCharacterAdded(player, player.Character)
+	end
+end
+
+local function onPlayerRemoving(player)
+	if NameTags[player] then
+		NameTags[player]:Destroy()
+		NameTags[player] = nil
+	end
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+	onPlayerAdded(player)
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(onPlayerRemoving)
