@@ -1,7 +1,10 @@
+-- Cool NameTag System (Readable + Clean)
+-- Client-Side, Optimized
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-
+-- SETTINGS
 local TEXT_COLOR = Color3.fromRGB(240, 240, 240) -- softer white
 local STROKE_COLOR = Color3.fromRGB(0, 0, 0)
 local SHADOW_COLOR = Color3.fromRGB(0, 0, 0)
@@ -22,6 +25,7 @@ local function createNameTag(player, character)
 	local head = character:FindFirstChild("Head")
 	if not head then return end
 
+	-- Cleanup old
 	if NameTags[player] then
 		NameTags[player]:Destroy()
 	end
@@ -34,7 +38,7 @@ local function createNameTag(player, character)
 	billboard.AlwaysOnTop = true
 	billboard.MaxDistance = MAX_DISTANCE
 
-
+	-- Main text
 	local textLabel = Instance.new("TextLabel")
 	textLabel.Size = UDim2.fromScale(1, 1)
 	textLabel.BackgroundTransparency = 1
@@ -60,6 +64,7 @@ local function createNameTag(player, character)
 	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
 	stroke.Parent = textLabel
 
+	-- Shadow (cheap readability boost)
 	local shadow = Instance.new("TextLabel")
 	shadow.Size = UDim2.fromScale(1, 1)
 	shadow.Position = UDim2.fromOffset(1, 1)
@@ -106,6 +111,7 @@ local function onPlayerRemoving(player)
 	end
 end
 
+-- Init
 for _, player in ipairs(Players:GetPlayers()) do
 	onPlayerAdded(player)
 end
