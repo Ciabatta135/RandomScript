@@ -377,6 +377,8 @@ local flySettings = {
 	track = nil,
 	anim = Instance.new("Animation")
 }
+
+
 flySettings.anim.AnimationId = "rbxassetid://95101792406607"
 
 local camera = workspace.CurrentCamera
@@ -402,14 +404,27 @@ local function setFlying(flying)
 			bodyGyro.CFrame = hrp.CFrame
 			bodyVel.Velocity = Vector3.new()
 			
-			if flying then
-				humanoid.PlatformStand = true
-				if not flySettings.track then flySettings.track = humanoid:LoadAnimation(flySettings.anim) end
-				if flySettings.track then flySettings.track:Play() flySettings.track.Looped = true end
-			else
-				humanoid.PlatformStand = false
-				if flySettings.track then flySettings.track:Stop() end
-			end
+            if flying then
+                humanoid.PlatformStand = true
+
+                local animator = humanoid:FindFirstChildOfClass("Animator")
+                if not animator then
+                    animator = Instance.new("Animator")
+                    animator.Parent = humanoid
+                end
+
+                -- ALWAYS reload the track (old one is invalid after death)
+                flySettings.track = animator:LoadAnimation(flySettings.anim)
+                flySettings.track.Looped = true
+                flySettings.track:Play()
+            else
+                humanoid.PlatformStand = false
+                if flySettings.track then
+                    flySettings.track:Stop()
+                    flySettings.track = nil
+                end
+            end
+
 		end
 	end
 end
@@ -1360,11 +1375,11 @@ end
 
 local IsFreezed = false
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
 
 local function FreezeTheCharacter()
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
     for _, part in pairs(char:GetDescendants()) do
         if part:IsA("BasePart") then
             part.Anchored = true
@@ -1373,6 +1388,9 @@ local function FreezeTheCharacter()
     end
 end
 local function Unfreeze()
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
     for _, part in pairs(char:GetDescendants()) do
         if part:IsA("BasePart") then
             part.Anchored = false
@@ -1401,12 +1419,12 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
 end)
 
 
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
-local RunService = game:GetService("RunService")
 local seatedDisabled = false
 RunService.RenderStepped:Connect(function()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local RunService = game:GetService("RunService")
     if seatedDisabled then
         humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
     else
