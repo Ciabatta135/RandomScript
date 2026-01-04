@@ -373,6 +373,7 @@ end
 local flySettings = {
 	speed = 30,
 	running = false,
+    running2 = false,
 	flying = false,
 	track = nil,
 	anim = Instance.new("Animation")
@@ -471,7 +472,7 @@ RunService.RenderStepped:Connect(function()
 			bodyVel.Velocity = direction * (humanoid and humanoid.WalkSpeed or 16) * (flySettings.running and (flySettings.speed * 2) or flySettings.speed) + Vector3.new(0, floatOffset, 0)
 			local finalSpeed = flySettings.speed
 			if flySettings.running then finalSpeed = 2000 end -- Simple run multiplier
-			
+			if flySettings.running2 then finalSpeed = 100 end
 			bodyVel.Velocity = direction * finalSpeed * 5 + Vector3.new(0, floatOffset, 0) 
 		end
 	end
@@ -508,6 +509,19 @@ end)
 UserInputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.LeftShift then
 		flySettings.running = false
+	end
+end)
+
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if input.KeyCode == Enum.KeyCode.Z then
+		flySettings.running2 = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.Z then
+		flySettings.running2 = false
 	end
 end)
 
@@ -995,15 +1009,332 @@ CreateToggle("ESP", function(state)
     end
 end)
 
--- 2. Noclip
+
+-- // TOGGLE UI VISIBILITY // --
+UserInputService.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.Tab then
+		Window.Visible = not Window.Visible
+	end
+end)
+
+	local UserInputService = game:GetService("UserInputService")
+	local Players = game:GetService("Players")
+	local CoreGui = game:GetService("CoreGui")
+	local LocalPlayer = Players.LocalPlayer
+
+	-- // ANIMATION LIST // --
+	local animations = {
+		{id = "80193159914927", name = "gojo float v1"},
+		{id = "139000839803032", name = "honored one"},
+		{id = "75978252489598", name = "gojo domain expansion"},
+		{id = "73211757884080", name = "gojo float again v2"},
+		{id = "130576365352960", name = "gojo run"},
+		{id = "94232069437883", name = "screenshotted"},
+		{id = "109728747582911", name = "meguna pose"},
+		{id = "72933881631978", name = "malevolent shrine"},
+		{id = "110517638794017", name = "goku warm up"},
+		{id = "106345021112927", name = "goku flying"},
+		{id = "112220709701439", name = "goku charge up"},
+		{id = "90460269306619", name = "goku Z pose"},
+		{id = "130198479813020", name = "aura farm sit pose"},
+		{id = "93657312155853", name = "aura superiore"},
+		{id = "91850736796162", name = "aura farming fly"},
+		{id = "98286410754321", name = "fly on clouds"},
+		{id = "110863385954626", name = "fairy tails fly"},
+		{id = "93326430026112", name = "omni man fly"},
+		{id = "115039429988772", name = "sleep fly"},
+		{id = "98604242520342", name = "the honored one"},
+		{id = "87367340874117", name = "gojo domain v2"},
+		{id = "131404782755351", name = "gojo infinity"},
+		{id = "131404681619254", name = "strongest of today"},
+		{id = "120335479030239", name = "wally west pose"},
+		{id = "115474307862803", name = "be not afraid"},
+		{id = "131063357988754", name = "levitate"},
+		{id = "85607988102490", name = "hakari dance"},
+		{id = "131836270858895", name = "sit"},
+		{id = "121350640829746", name = "speedster"},
+		{id = "134331016837285", name = "oof"},
+		{id = "70432904702322", name = "skinwalker"},
+		{id = "92955334444822", name = "itoshi rin"},
+		{id = "107336618078320", name = "mahoraga summon"},
+		{id = "117285946325983", name = "gojo red"},
+		{id = "124632821831655", name = "gojo laugh"},
+		{id = "93612961664824", name = "gojo hollow purple"},
+		{id = "96760493070315", name = "gojo dead"},
+		{id = "98352002677627", name = "sukuna idle"},
+		{id = "116718638791834", name = "no"},
+		{id = "104238959556624", name = "pocket hand1"},
+		{id = "110460553651561", name = "idk"},
+		{id = "113203077347750", name = "sans idle"},
+		{id = "81253639230607", name = "sans v1"},
+		{id = "76680605097305", name = "another sans idle"},
+		{id = "123627677663418", name = "sans v2"},
+		{id = "101544382833259", name = "float around"},
+		{id = "125230377961366", name = "beerus"},
+		{id = "75507230702036", name = "sad gojo"},
+		{id = "80533696628930", name = "floating aurafarm"},
+		{id = "124899786546830", name = "floating complex"},
+		{id = "95101792406607", name = "aura hover"},
+		{id = "132893096104848", name = "pose staredown"},
+		{id = "122746752555782", name = "aura idle"},
+		{id = "126285359578816", name = "bird fly"},
+		{id = "136474387705342", name = "hero flying"},
+		{id = "138074356051413", name = "blaze aura rotation"},
+		{id = "74718661188657", name = "cold aura farm"},
+		{id = "77360312751381", name = "Meditation"},
+		{id = "115516323322788", name = "cute sit"},
+		{id = "114214782009623", name = "Cooked"},
+		{id = "107189172663814", name = "proud death"},
+		{id = "124754699657174", name = "spiderman hang pose"},
+		{id = "125278636690594", name = "bully Maguire dance"},
+		{id = "116630827536165", name = "telekinesis"},
+		{id = "140692198363356", name = "one push up"},
+		{id = "136274072867510", name = "hard thinking"},
+		{id = "92992287989489", name = "im angry"},
+	}
+
+	-- // THEME CONFIGURATION // --
+	local THEME = {
+		MainBG = Color3.fromRGB(20, 20, 25),
+		HeaderStart = Color3.fromRGB(45, 35, 70),
+		HeaderEnd = Color3.fromRGB(30, 25, 50),
+		Stroke = Color3.fromRGB(60, 50, 90),
+		ItemBG = Color3.fromRGB(30, 30, 40),
+		Text = Color3.fromRGB(240, 240, 240),
+		Accent = Color3.fromRGB(180, 80, 255),
+		StopRed = Color3.fromRGB(200, 50, 50),
+		ScrollBar = Color3.fromRGB(60, 50, 90)
+	}
+
+	-- // LOGIC FUNCTIONS // --
+	local function stopAllAnimations()
+		local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+		local humanoid = char:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
+				track:Stop()
+			end
+		end
+	end
+
+	local function playAnimation(animId)
+		stopAllAnimations()
+		local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+		local humanoid = char:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			local anim = Instance.new("Animation")
+			anim.AnimationId = "rbxassetid://" .. animId
+			local track = humanoid:LoadAnimation(anim)
+			track.Looped = true
+			track:Play()
+		end
+	end
+
+	-- // GUI SETUP // --
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "AnimationHub"
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	if gethui then
+		ScreenGui.Parent = gethui()
+	else
+		ScreenGui.Parent = CoreGui
+	end
+
+	-- // DRAGGABLE FUNCTION // --
+	local function MakeDraggable(topbarObject, object)
+		local dragging, dragInput, dragStart, startPos
+		topbarObject.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				dragging = true
+				dragStart = input.Position
+				startPos = object.Position
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then dragging = false end
+				end)
+			end
+		end)
+		topbarObject.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+		end)
+		UserInputService.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				local delta = input.Position - dragStart
+				object.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+			end
+		end)
+	end
+
+	-- // WINDOW // --
+	local Window = Instance.new("Frame")
+	Window.Name = "MainFrame"
+	Window.Parent = ScreenGui
+	Window.BackgroundColor3 = THEME.MainBG
+	Window.Visible = false
+	Window.Position = UDim2.new(0.015, 0, 0.400, 0)
+	Window.Size = UDim2.new(0, 240, 0, 380) 
+	Window.BorderSizePixel = 0
+
+	local WCorner = Instance.new("UICorner")
+	WCorner.CornerRadius = UDim.new(0, 8)
+	WCorner.Parent = Window
+
+	local WStroke = Instance.new("UIStroke")
+	WStroke.Color = THEME.Stroke
+	WStroke.Thickness = 2
+	WStroke.Parent = Window
+
+	-- // HEADER // --
+	local Header = Instance.new("Frame")
+	Header.Parent = Window
+	Header.BackgroundColor3 = Color3.fromRGB(255, 255, 255) 
+	Header.Size = UDim2.new(1, 0, 0, 35)
+	Header.BorderSizePixel = 0
+
+	local HCorner = Instance.new("UICorner")
+	HCorner.CornerRadius = UDim.new(0, 8)
+	HCorner.Parent = Header
+
+	local HGradient = Instance.new("UIGradient")
+	HGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, THEME.HeaderStart),
+		ColorSequenceKeypoint.new(1, THEME.HeaderEnd)
+	}
+	HGradient.Rotation = 45
+	HGradient.Parent = Header
+
+	local TitleLabel = Instance.new("TextLabel")
+	TitleLabel.Parent = Header
+	TitleLabel.BackgroundTransparency = 1
+	TitleLabel.Position = UDim2.new(0, 12, 0, 0)
+	TitleLabel.Size = UDim2.new(1, -12, 1, 0)
+	TitleLabel.Font = Enum.Font.GothamBold
+	TitleLabel.Text = "ANIMATION HUB"
+	TitleLabel.TextColor3 = THEME.Text
+	TitleLabel.TextSize = 15
+	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+	-- Fix rounded corners at bottom of header clipping
+	local HeaderCover = Instance.new("Frame")
+	HeaderCover.Name = "Cover"
+	HeaderCover.Parent = Header
+	HeaderCover.BackgroundColor3 = THEME.MainBG -- Placeholder, gets overwritten by gradient if needed or just hidden
+	HeaderCover.BackgroundTransparency = 1
+	HeaderCover.BorderSizePixel = 0
+	HeaderCover.Position = UDim2.new(0, 0, 1, -5)
+	HeaderCover.Size = UDim2.new(1, 0, 0, 5)
+
+	MakeDraggable(Header, Window)
+
+	-- // CONTENT AREA // --
+	local Content = Instance.new("Frame") 
+	Content.Parent = Window
+	Content.BackgroundTransparency = 1
+	Content.Position = UDim2.new(0, 0, 0, 45)
+	Content.Size = UDim2.new(1, 0, 1, -50)
+
+	-- // STOP BUTTON (Fixed at top of content) // --
+	local StopButton = Instance.new("TextButton")
+	StopButton.Parent = Content
+	StopButton.BackgroundColor3 = THEME.StopRed
+	StopButton.Position = UDim2.new(0.05, 0, 0, 0)
+	StopButton.Size = UDim2.new(0.9, 0, 0, 30)
+	StopButton.Font = Enum.Font.GothamBold
+	StopButton.Text = "STOP ANIMATION"
+	StopButton.TextSize = 13
+	StopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Instance.new("UICorner", StopButton).CornerRadius = UDim.new(0, 6)
+
+	StopButton.MouseButton1Click:Connect(stopAllAnimations)
+
+	-- // SCROLLING LIST // --
+	local ScrollingFrame = Instance.new("ScrollingFrame")
+	ScrollingFrame.Parent = Content
+	ScrollingFrame.BackgroundTransparency = 1
+	ScrollingFrame.Position = UDim2.new(0, 0, 0, 38)
+	ScrollingFrame.Size = UDim2.new(1, 0, 1, -38)
+	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, (#animations * 34)) -- Dynamic height
+	ScrollingFrame.ScrollBarThickness = 4
+	ScrollingFrame.ScrollBarImageColor3 = THEME.ScrollBar
+	ScrollingFrame.BorderSizePixel = 0
+
+	local UIList = Instance.new("UIListLayout")
+	UIList.Parent = ScrollingFrame
+	UIList.SortOrder = Enum.SortOrder.LayoutOrder
+	UIList.Padding = UDim.new(0, 6)
+	UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+	-- // GENERATE ANIMATION BUTTONS // --
+	for _, animData in ipairs(animations) do
+		local Button = Instance.new("TextButton")
+		Button.Parent = ScrollingFrame
+		Button.BackgroundColor3 = THEME.ItemBG
+		Button.Size = UDim2.new(0.9, 0, 0, 28)
+		Button.Font = Enum.Font.Gotham
+		Button.Text = animData.name
+		Button.TextSize = 12
+		Button.TextColor3 = THEME.Text
+		Button.AutoButtonColor = true
+		
+		-- Rounded Corners for buttons
+		local btnCorner = Instance.new("UICorner")
+		btnCorner.CornerRadius = UDim.new(0, 6)
+		btnCorner.Parent = Button
+		
+		-- Click Event
+		Button.MouseButton1Click:Connect(function()
+			playAnimation(animData.id)
+		end)
+	end
+
+	-- // FOOTER INFO // --
+	local InfoLabel = Instance.new("TextLabel")
+	InfoLabel.Parent = Window
+	InfoLabel.BackgroundTransparency = 1
+	InfoLabel.Position = UDim2.new(0, 0, 1, -15)
+	InfoLabel.Size = UDim2.new(1, 0, 0, 15)
+	InfoLabel.Font = Enum.Font.Gotham
+	InfoLabel.Text = "Press [M] to Toggle"
+	InfoLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+	InfoLabel.TextSize = 10
 CreateToggle("ANIMATIONS", function(state)
-	print("Noclip Toggled:", state)
+	if state == true then
+		Window.Visible = true
+	elseif state == false then
+		Window.Visible = false
+	end
 end)
 
 -- 3. Speed
 CreateToggle("SETTINGS", function(state)
 	print("Speed Toggled:", state)
 end)
+
+
+local WantToTeleport = false
+CreateToggle("G to teleport", function(state)
+    local UIS = game:GetService("UserInputService")
+    local plr = game.Players.LocalPlayer
+    local mouse = plr:GetMouse()
+
+    WantToTeleport = state
+
+    UIS.InputBegan:Connect(function(input, gameProcessedEvent)
+        if gameProcessedEvent then return end 
+        if input.KeyCode == Enum.KeyCode.G then 
+            local pos = mouse.Hit.Position + Vector3.new(0, 2.5, 0)
+            local character = plr.Character
+
+            if WantToTeleport then 
+                if character and character:FindFirstChild("HumanoidRootPart") then 
+                    character.HumanoidRootPart.CFrame = CFrame.new(pos)
+                end
+            end
+            
+        end
+    end)
+end)
+
 
 
 -- 5. Teleport
@@ -1032,12 +1363,7 @@ end)
 
 
 
--- // TOGGLE UI VISIBILITY // --
-UserInputService.InputBegan:Connect(function(input)
-	if input.KeyCode == Enum.KeyCode.Tab then
-		Window.Visible = not Window.Visible
-	end
-end)
+
 
 
 -- other
@@ -1505,6 +1831,55 @@ CreateSlider("Jump Val", 16, 500, 100, function(val)
         ApplyJump()
     end
 end)
+
+
+local teleportButtons = false
+local teleportDistance = 10
+local UserInputService = game:GetService("UserInputService")
+
+local function teleportPlayer(direction)
+	if not teleportButtons then return end
+
+	local player = game.Players.LocalPlayer
+	local character = player.Character
+	if not character then return end
+
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	local cf = hrp.CFrame
+
+	if direction == "right" then
+		hrp.CFrame = cf + cf.RightVector * teleportDistance
+	elseif direction == "left" then
+		hrp.CFrame = cf - cf.RightVector * teleportDistance
+	elseif direction == "behind" then
+		hrp.CFrame = cf - cf.LookVector * teleportDistance
+	elseif direction == "forward" then
+		hrp.CFrame = cf + cf.LookVector * teleportDistance
+	end
+end
+
+-- ONE input connection
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then return end
+
+	if input.KeyCode == Enum.KeyCode.Five then
+		teleportPlayer("right")
+	elseif input.KeyCode == Enum.KeyCode.Four then
+		teleportPlayer("left")
+	elseif input.KeyCode == Enum.KeyCode.Q then
+		teleportPlayer("behind")
+	elseif input.KeyCode == Enum.KeyCode.Six then
+		teleportPlayer("forward")
+	end
+end)
+
+-- Toggle
+CreateToggle("Buttons to teleport", function(state)
+	teleportButtons = state
+end)
+
 
 
 
