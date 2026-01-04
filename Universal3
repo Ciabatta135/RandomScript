@@ -908,6 +908,106 @@ local LocalPlayer = Players.LocalPlayer
 local NameTags = {}
 local Connections = {} -- Table to store events so we can disconnect them
 
+CreateToggle("Vfly", function(state)
+	if state == true then
+		local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
+local speed = 200 -- Velocità di volo
+
+local function startFixedFly()
+    local character = player.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+
+    local seat = humanoid.SeatPart
+    if not seat then
+        warn("❌ Devi essere seduto in un veicolo!")
+        return
+    end
+
+    -- Trova la parte principale del veicolo per non rompere il sedile
+    local vehiclePart = seat
+    if seat.Parent and seat.Parent:IsA("Model") and seat.Parent.PrimaryPart then
+        vehiclePart = seat.Parent.PrimaryPart
+    end
+
+    -- === IL FIX DELLA CAMERA ===
+    -- Forziamo la camera a guardare il personaggio, non il veicolo.
+    -- Questo impedisce alla camera di girare da sola quando l'auto ruota.
+    local originalSubject = camera.CameraSubject
+    camera.CameraSubject = character:FindFirstChild("Head") or character.PrimaryPart
+
+    -- Creazione Forze Fisiche
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bv.Velocity = Vector3.new(0, 0, 0)
+    bv.Parent = vehiclePart
+
+    local bg = Instance.new("BodyGyro")
+    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bg.P = 10000 
+    bg.D = 100
+    bg.CFrame = vehiclePart.CFrame -- Mantiene l'angolo iniziale
+    bg.Parent = vehiclePart
+
+    print("✅ Volo Attivato. Camera stabilizzata.")
+
+    local flyConnection
+    flyConnection = RunService.Heartbeat:Connect(function()
+        -- CONTROLLO USA E GETTA
+        if not character or not character.Parent or humanoid.Health <= 0 or not humanoid.SeatPart then
+            -- Pulizia quando finisce
+            bv:Destroy()
+            bg:Destroy()
+            
+            -- Ripristina la camera normale
+            if camera.CameraSubject == character:FindFirstChild("Head") then
+                camera.CameraSubject = humanoid 
+            else
+                camera.CameraSubject = originalSubject
+            end
+            
+            flyConnection:Disconnect()
+            print("❌ Volo disattivato.")
+            return
+        end
+
+        local camCFrame = camera.CFrame
+        local moveDir = Vector3.new(0, 0, 0)
+
+        -- Controlli WASD
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveDir = moveDir + camCFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveDir = moveDir - camCFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveDir = moveDir - camCFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveDir = moveDir + camCFrame.RightVector
+        end
+
+        -- Applica movimento
+        bv.Velocity = moveDir * speed
+        
+        -- Applica rotazione (Ora stabile perché la camera è sganciata dall'auto)
+        bg.CFrame = CFrame.new(vehiclePart.Position, vehiclePart.Position + camCFrame.LookVector)
+    end)
+end
+
+startFixedFly()
+	end
+end)
+
 CreateToggle("ESP", function(state)
     -- Helper function to clean up everything
     local function Cleanup()
